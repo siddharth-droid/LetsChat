@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:chatapp/widgets/chat/messages.dart';
+import 'package:chatapp/widgets/chat/new_message.dart';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -51,39 +53,19 @@ class ChatScreen extends StatelessWidget {
           )
         ],
       ),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance
-            .collection('chats/KYf0uG4XuLvSGsAHwvcA/messages')
-            .snapshots(),
-        builder: (ctx, streamSnapshot) {
-          // initially when the request is sent behind the scenes at the data is recieved no data is there
-          // so we check in our snapshot if our connectionstate is equal to connection state waiting
-          //connectionstate is an object in flutter has an waiting property which tells us that currently we re waiting for some data here
-          if (streamSnapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child:
-                  CircularProgressIndicator(), // we wont see the indicator as it loads too fast in milliseconds ms
-            );
-          }
-
-          final documents = streamSnapshot.data!.docs;
-
-          return ListView.builder(
-            itemCount: documents.length,
-            itemBuilder: (ctx, index) => Container(
-              padding: EdgeInsets.all(8),
-              child: Text(documents[index]['text']),
+      // now in body instead of having a streambuilder we create a container
+      body: Container(
+        child: Column(
+          children: <Widget>[
+            // messages ofcourse return a listview at the end and a listview inside a coulumn wouldnt work that well
+            // so we wrap it inside an expanded otherwise we get an error
+            // now it ensures that listview only takes that much space as available in the current screen whilst being scrollable
+            Expanded(
+              child: Messages(),
             ),
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        child: Icon(Icons.add),
-        onPressed: () {
-          FirebaseFirestore.instance
-              .collection('chats/KYf0uG4XuLvSGsAHwvcA/messages')
-              .add({'text': 'This was added by clicking the button'});
-        },
+            NewMessage(),
+          ],
+        ),
       ),
     );
   }
